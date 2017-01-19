@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
      if (newsockfd < 0) 
        error("ERROR on accept");
          
-     int n;
+	 int n;
    	 char buffer[256];
    			 
    	 memset(buffer, 0, 256);	//reset memory
@@ -62,7 +62,20 @@ int main(int argc, char *argv[])
    	 printf("Here is the message: %s\n",buffer);
    	 
    	 //reply to client
-   	 n = write(newsockfd,"I got your message",18);
+	 char *response = 
+	"HTTP/1.1 200 OK\n"
+	"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+	"Server: Apache/2.2.3\n"
+	"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+	"ETag: \"56d-9989200-1132c580\"\n"
+	"Content-Type: text/html\n"
+	"Content-Length: 15\n"
+	"Accept-Ranges: bytes\n"
+	"Connection: close\n"
+	"\n"
+	"sdfkjsdnbfkjbsf"; 
+
+   	 n = write(newsockfd,response,strlen(response));
    	 if (n < 0) error("ERROR writing to socket");
          
      
