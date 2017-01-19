@@ -2,7 +2,7 @@
    The port number is passed as an argument 
    This version runs forever, forking off a separate 
    process for each connection
-*/
+ */
 #include <stdio.h>
 #include <sys/types.h>   // definitions of a number of data types used in socket.h and netinet/in.h
 #include <sys/socket.h>  // definitions of structures needed for sockets, e.g. sockaddr
@@ -15,64 +15,69 @@
 
 void error(char *msg)
 {
-    perror(msg);
-    exit(1);
+	perror(msg);
+	exit(1);
 }
 
 int main(int argc, char *argv[])
 {
-     int sockfd, newsockfd, portno, pid;
-     socklen_t clilen;
-     struct sockaddr_in serv_addr, cli_addr;
+	int sockfd, newsockfd, portno, pid;
+	socklen_t clilen;
+	struct sockaddr_in serv_addr, cli_addr;
 
-     if (argc < 2) {
-         fprintf(stderr,"ERROR, no port provided\n");
-         exit(1);
-     }
-     sockfd = socket(AF_INET, SOCK_STREAM, 0);	//create socket
-     if (sockfd < 0) 
-        error("ERROR opening socket");
-     memset((char *) &serv_addr, 0, sizeof(serv_addr));	//reset memory
-     //fill in address info
-     portno = atoi(argv[1]);
-     serv_addr.sin_family = AF_INET;
-     serv_addr.sin_addr.s_addr = INADDR_ANY;
-     serv_addr.sin_port = htons(portno);
-     
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0) 
-              error("ERROR on binding");
-     
-     listen(sockfd,5);	//5 simultaneous connection at most
-     
-     //accept connections
-     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-         
-     if (newsockfd < 0) 
-       error("ERROR on accept");
-         
-	 int n;
-   	 char buffer[256];
-   			 
-   	 memset(buffer, 0, 256);	//reset memory
-      
- 		 //read client's message
-   	 n = read(newsockfd,buffer,255);
-   	 if (n < 0) error("ERROR reading from socket");
-   	 printf("Here is the message: %s\n",buffer);
-   	 
-   	 //reply to client
-	 char *response = 
-	"HTTP/1.1 200 OK\n"
-	"\n"
-	"samir";
-   	 n = write(newsockfd,response,strlen(response));
-   	 if (n < 0) error("ERROR writing to socket");
-         
-     
-     close(newsockfd);//close connection 
-     close(sockfd);
-         
-     return 0; 
+	if (argc < 2) {
+		fprintf(stderr,"ERROR, no port provided\n");
+		exit(1);
+	}
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);	//create socket
+	if (sockfd < 0) 
+		error("ERROR opening socket");
+	memset((char *) &serv_addr, 0, sizeof(serv_addr));	//reset memory
+	//fill in address info
+	portno = atoi(argv[1]);
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
+
+	if (bind(sockfd, (struct sockaddr *) &serv_addr,
+				sizeof(serv_addr)) < 0) 
+		error("ERROR on binding");
+
+	listen(sockfd,5);	//5 simultaneous connection at most
+
+	//accept connections
+	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+
+	if (newsockfd < 0) 
+		error("ERROR on accept");
+
+	int n;
+	char buffer[256];
+
+	memset(buffer, 0, 256);	//reset memory
+
+	//read client's message
+	n = read(newsockfd,buffer,255);
+	if (n < 0) error("ERROR reading from socket");
+	printf("Here is the message: %s\n",buffer);
+
+	//reply to client
+	char *response = 
+		"HTTP/1.1 200 OK\n"
+		"Content-Type: text/html\n"
+		"\n";
+
+	n = write(newsockfd,response,strlen(response));
+
+	response = "<h1> hello <\h1>";
+
+	n = write(newsockfd ,response,strlen(response));
+
+	if (n < 0) error("ERROR writing to socket");
+
+	close(newsockfd);//close connection 
+	close(sockfd);
+
+	return 0; 
 }
 
