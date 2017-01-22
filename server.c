@@ -19,6 +19,53 @@ void error(char *msg)
 	exit(1);
 }
 
+void serveFile(int sockfd, char *file){
+	if(file=="\0")
+		error("Error: no file specified!\n");
+
+	int n;
+	char *buf = NULL;
+	int length = 0;
+	FILE *fp = fopen(file, "r");
+
+	if (fp == NULL)
+		error("Error: file could not be opened.\n");
+
+	//place file pointer at the end of the file
+	if (fseek(fp, 0, SEEK_END) == 0){
+		//obtain the size of the file
+		length = ftell(fp);
+		printf(" the length of the file is %d\n", length);
+		buf = malloc(sizeof(char) * (length + 1));
+
+		//read the data from the file into buf
+		size_t read_length = fread(buf, sizeof(char), length, fp);
+		printf(" the number of bytes read is %d\n", read_length);
+		if (read_length == 0)
+			error("Error: could not read file.\n");
+
+		//set the null byte at the end of the buffer
+		buf[read_length] = '\0';
+
+		//generate the html response headers
+		char *response = 
+		"HTTP/1.1 200 OK\n"
+		"Content-Type: text/html\n"
+		"\n";
+
+		n = write(sockfd,response,strlen(response));
+
+		if (n < 0) error("ERROR writing to socket");
+
+		n = write(sockfd, buf, read_length);
+
+		if (n < 0) error("ERROR writing to socket");
+
+		free(buf);
+
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int sockfd, newsockfd, portno, pid;
@@ -70,9 +117,10 @@ int main(int argc, char *argv[])
 	
 	printf("%s \n",filename);
 
+	serveFile(newsockfd, filename);
 	
 	//reply to client
-
+	/*
 	char *response = 
 		"HTTP/1.1 200 OK\n"
 		"Content-Type: text/html\n"
@@ -85,10 +133,12 @@ int main(int argc, char *argv[])
 	n = write(newsockfd ,response,strlen(response));
 
 	if (n < 0) error("ERROR writing to socket");
+	*/
 
 	close(newsockfd);//close connection 
 	close(sockfd);
 
 	return 0; 
 }
+
 
