@@ -12,47 +12,74 @@
 #include <sys/wait.h>	/* for the waitpid() system call */
 #include <signal.h>	/* signal name macros, and the kill() prototype */
 
-
 void error(char *msg)
 {
 	perror(msg);
 	exit(1);
 }
 
-void serveFile(int sockfd, char *file){
-	if(file=="\0")
-		error("Error: no file specified!\n");
+char* file_type(char* filename){
+	char* response;
+	if(strstr(filename , ".jpg") != NULL) {
+		
+	response =  "HTTP/1.1 200 OK\n"
+		    "Content-Type: image/jpeg\n"
+		    "\n";
+	
+	}
+	else if(strstr(filename , ".gif") != NULL){
+	
+	response =  "HTTP/1.1 200 OK\n"
+		    "Content-Type: image/gif\n"
+		    "\n";
+	}
+	else{
+	
+	response = "HTTP/1.1 200 OK\n"
+		   "Content-Type: text/html\n"
+		   "\n";
+	}
 
+	return response;
+}
+
+
+
+void serveFile(int sockfd, char *file){
+	if(file=="\0"){
+		error("Error: no file specified!\n");
+	}
 	int n;
 	char *buf = NULL;
 	int length = 0;
-	FILE *fp = fopen(file, "r");
+	FILE *fp = fopen(file, "rb");
 
-	if (fp == NULL)
+	if (fp == NULL){
 		error("Error: file could not be opened.\n");
-
+	}
+	
 	//place file pointer at the end of the file
+
 	if (fseek(fp, 0, SEEK_END) == 0){
 		//obtain the size of the file
 		length = ftell(fp);
-		printf(" the length of the file is %d\n", length);
 		buf = malloc(sizeof(char) * (length + 1));
 
 		//read the data from the file into buf
+		
+		fseek(fp, SEEK_SET, 0);
+
 		size_t read_length = fread(buf, sizeof(char), length, fp);
-		printf(" the number of bytes read is %d\n", read_length);
+		
 		if (read_length == 0)
 			error("Error: could not read file.\n");
 
 		//set the null byte at the end of the buffer
 		buf[read_length] = '\0';
-
+		
+		char * response = file_type(file);
 		//generate the html response headers
-		char *response = 
-		"HTTP/1.1 200 OK\n"
-		"Content-Type: text/html\n"
-		"\n";
-
+	
 		n = write(sockfd,response,strlen(response));
 
 		if (n < 0) error("ERROR writing to socket");
@@ -62,7 +89,6 @@ void serveFile(int sockfd, char *file){
 		if (n < 0) error("ERROR writing to socket");
 
 		free(buf);
-
 	}
 }
 
@@ -115,30 +141,12 @@ int main(int argc, char *argv[])
 
 	sscanf(buffer, "GET /%s HTTP/1.1 /n \*",filename);
 	
-	printf("%s \n",filename);
-
+	// reply the file
+	
 	serveFile(newsockfd, filename);
-	
-	//reply to client
-	/*
-	char *response = 
-		"HTTP/1.1 200 OK\n"
-		"Content-Type: text/html\n"
-		"\n";
 
-	n = write(newsockfd,response,strlen(response));
-	
-	response = "<h1> hello <\h1>";
-
-	n = write(newsockfd ,response,strlen(response));
-
-	if (n < 0) error("ERROR writing to socket");
-	*/
-
-	close(newsockfd);//close connection 
+	close(newsockfd);	//close connection 
 	close(sockfd);
 
 	return 0; 
 }
-
-
