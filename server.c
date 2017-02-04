@@ -46,23 +46,30 @@ char* file_type(char* filename){
 
 
 void serveFile(int sockfd, char *file){
+
 	if(file=="\0"){
 		error("Error: no file specified!\n");
 	}
+
 	int n;
 	char *buf = NULL;
 	int length = 0;
+	char * response;
 
 	FILE *fp = fopen(file, "rb");
 
 	if (fp == NULL){
-		serveFile(sockfd,"home.html");
-		error("Error: file could not be opened.\n");
+		 response = "HTTP/1.1 404 Not Found\n"
+                   	    "Content-Type: text/html\n"
+                            "\n"
+			    "<html><body><h1> 404 Not Found </h1><a href=\"/file.html\">file.html</a><br><a href=\"/file.gif\">file.gif</a><br><a href=\"/file.jpg\">file.jpg</a></body><html>";			
+		 n = write(sockfd,response,strlen(response));
+		 // error("Error: file could not be opened.\n");
 	}
 	
 	//place file pointer at the end of the file
 
-	if (fseek(fp, 0, SEEK_END) == 0){
+	else if(fseek(fp, 0, SEEK_END) == 0){
 		//obtain the size of the file
 		length = ftell(fp);
 		buf = malloc(sizeof(char) * (length + 1));
@@ -79,7 +86,7 @@ void serveFile(int sockfd, char *file){
 		//set the null byte at the end of the buffer
 		buf[read_length] = '\0';
 		
-		char * response = file_type(file);
+		response = file_type(file);
 		//generate the html response headers
 	
 		n = write(sockfd,response,strlen(response));
@@ -92,6 +99,7 @@ void serveFile(int sockfd, char *file){
 
 		free(buf);
 	}
+	
 }
 
 int main(int argc, char *argv[])
@@ -117,12 +125,14 @@ int main(int argc, char *argv[])
 	if (bind(sockfd, (struct sockaddr *) &serv_addr,
 				sizeof(serv_addr)) < 0) 
 		error("ERROR on binding");
-
+	
+	
 	listen(sockfd,5);	//5 simultaneous connection at most
-
+	
 	//accept connections
+	while(1){
 	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-
+	
 	if (newsockfd < 0) 
 		error("ERROR on accept");
 
@@ -144,10 +154,12 @@ int main(int argc, char *argv[])
 	sscanf(buffer, "GET /%s HTTP/1.1 /n \*",filename);
 	
 	// reply the file
-	
+
 	serveFile(newsockfd, filename);
 
+	
 	close(newsockfd);	//close connection 
+	}
 	close(sockfd);
 
 	return 0; 
