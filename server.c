@@ -11,6 +11,7 @@
 #include <strings.h>
 #include <sys/wait.h>	/* for the waitpid() system call */
 #include <signal.h>	/* signal name macros, and the kill() prototype */
+#include <unistd.h>
 
 void error(char *msg)
 {
@@ -47,9 +48,9 @@ char* file_type(char* filename){
 
 void serveFile(int sockfd, char *file){
 
-	if(file=="\0"){
-		error("Error: no file specified!\n");
-	}
+	//if(strncmp(file,"\0",1)){
+	//	error("Error: no file specified!\n");
+	//}
 
 	int n;
 	char *buf = NULL;
@@ -104,7 +105,7 @@ void serveFile(int sockfd, char *file){
 
 int main(int argc, char *argv[])
 {
-	int sockfd, newsockfd, portno, pid;
+	int sockfd, newsockfd, portno;
 	socklen_t clilen;
 	struct sockaddr_in serv_addr, cli_addr;
 
@@ -151,7 +152,7 @@ int main(int argc, char *argv[])
 
 	char filename[256];
 
-	sscanf(buffer, "GET /%s HTTP/1.1 /n \*",filename);
+	sscanf(buffer, "GET /%s HTTP/1.1 /n /*",filename);
 	
 	// reply the file
 
