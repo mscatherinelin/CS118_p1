@@ -52,9 +52,11 @@ void serveFile(int sockfd, char *file){
 	int n;
 	char *buf = NULL;
 	int length = 0;
+
 	FILE *fp = fopen(file, "rb");
 
 	if (fp == NULL){
+		serveFile(sockfd,"home.html");
 		error("Error: file could not be opened.\n");
 	}
 	
