@@ -64,7 +64,7 @@ void serveFile(int sockfd, char *file){
 		 response = "HTTP/1.1 404 Not Found\n"
                    	    "Content-Type: text/html\n"
                             "\n"
-			    "<html><body><h1> 404 Not Found </h1><a href=\"/file.html\">file.html</a><br><a href=\"/file.gif\">file.gif</a><br><a href=\"/file.jpg\">file.jpg</a></body><html>";			
+			    "<html><body><h1> 404 Not Found </h1></body><html>";			
 		 n = write(sockfd,response,strlen(response));
 		 // error("Error: file could not be opened.\n");
 	}
